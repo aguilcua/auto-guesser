@@ -56,7 +56,7 @@ export function CreatableCombobox({
             className="text-white"
           />
           <CommandList>
-            {/* THE MAGIC: If no database cars match, show the add button */}
+            {/* need to fix text color when typed */}
             <CommandEmpty>
               <button
                 className="w-full text-left px-4 py-3 text-sm text-blue-400 hover:bg-gray-700 transition-colors"
