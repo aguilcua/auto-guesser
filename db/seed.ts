@@ -2,14 +2,14 @@ import { db } from "./index";
 import { cars, attributes, carAttributes, globalStats } from "./schema";
 
 async function main() {
-  console.log("🌱 Clearing old data...");
+  console.log(" Clearing old data...");
   await db.delete(carAttributes);
   await db.delete(cars);
   await db.delete(attributes);
   await db.delete(globalStats);
 
   
-  console.log("🌱 Seeding Questions...");
+  console.log(" Seeding Questions...");
   //questions are defined using a key to be used later
   const questionData = [
     // DRIVETRAIN
