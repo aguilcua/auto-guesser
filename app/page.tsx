@@ -122,7 +122,7 @@ export default function AutoGuesser() {
   useEffect(() => {
     fetchNextTurn({});
   }, []);
-
+  const currentQuestionNumber = Object.keys(answers).length + 1;
   const handleAnswer = (isMatch: boolean | null) => {
     if (!currentQuestion) return;
     const newAnswers = { ...answers, [currentQuestion.id]: isMatch };
@@ -194,6 +194,7 @@ export default function AutoGuesser() {
       },
       {} as Record<string, { label: string; color: string }>,
     ) || {};
+
   return (
     <main className="min-h-screen bg-gray-950 text-white p-4 md:p-8 font-sans">
       <div className="w-full max-w-6xl mx-auto">
@@ -238,10 +239,15 @@ export default function AutoGuesser() {
               <div className="flex justify-between items-center mb-8">
                 <button
                   onClick={handleRestart}
-                  className="text-sm text-red-800 border-2 border-red-500 rounded px-4 py-2 hover:text-red-500 transition-colors"
+                  className="text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-2 px-3 py-1.5 border border-gray-800 rounded-lg hover:bg-gray-800"
                 >
-                  Restart
+                  ↺ Restart
                 </button>
+
+                {/* QUESTION COUNTER */}
+                <div className="text-xs font-mono font-bold text-emerald-400 bg-emerald-400/10 px-3 py-1.5 rounded-full border border-emerald-400/20 shadow-sm">
+                  # {currentQuestionNumber}
+                </div>
               </div>
               <div className="min-h-[250px] flex items-center justify-center text-center mb-8">
                 {loading ? (
@@ -366,7 +372,7 @@ export default function AutoGuesser() {
 
                     {/* ANSWER BUTTONS */}
                     <div
-                      className={`flex flex-row justify-center items-center gap-4 transition-opacity duration-150 ${
+                      className={`w-full max-w-sm sm:max-w-md mx-auto grid grid-cols-2 sm:grid-cols-3 gap-3 transition-opacity duration-150 ${
                         loading
                           ? "opacity-70 pointer-events-none"
                           : "opacity-100"
@@ -374,21 +380,21 @@ export default function AutoGuesser() {
                     >
                       <button
                         onClick={() => handleAnswer(true)}
-                        className="w-32 py-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-white shadow-md"
+                        className="col-span-1 py-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-white shadow-md transition-transform active:scale-95"
                       >
                         Yes
                       </button>
 
                       <button
                         onClick={() => handleAnswer(false)}
-                        className="w-32 py-3 bg-red-600 hover:bg-red-500 rounded-xl font-bold text-white shadow-md"
+                        className="col-span-1 py-3 bg-red-600 hover:bg-red-500 rounded-xl font-bold text-white shadow-md transition-transform active:scale-95"
                       >
                         No
                       </button>
 
                       <button
                         onClick={() => handleAnswer(null)}
-                        className="w-32 py-3 bg-gray-700 hover:bg-gray-600 rounded-xl font-bold text-white shadow-md"
+                        className="col-span-2 sm:col-span-1 py-3 bg-gray-700 hover:bg-gray-600 rounded-xl font-bold text-white shadow-md transition-transform active:scale-95"
                       >
                         Don't Know
                       </button>
@@ -426,9 +432,7 @@ export default function AutoGuesser() {
                     <h2 className="text-2xl text-yellow-400 font-bold mb-6">
                       Game Over
                     </h2>
-                    <p className="text-gray-400 mb-8">
-                      I'm out of questions
-                    </p>
+                    <p className="text-gray-400 mb-8">I'm out of questions</p>
                     <button
                       onClick={handleRestart}
                       className="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-lg font-bold text-lg transition-colors"
@@ -643,7 +647,11 @@ export default function AutoGuesser() {
                 Lorem Ipsum
               </h2>
               <p className="text-gray-300 leading-relaxed">
-                lorem ipsum dolor sit amet consectetur adipiscing elit enim et occaecat sed fugiat est cupidatat qui occaecat irure ullamco ut ad rerum et dolorum in facere assumenda pariatur deleniti dignissimos in optio nulla quidem ut nulla et ad molestias quidem sint est quis optio nam minus ut deserunt deleniti qui
+                lorem ipsum dolor sit amet consectetur adipiscing elit enim et
+                occaecat sed fugiat est cupidatat qui occaecat irure ullamco ut
+                ad rerum et dolorum in facere assumenda pariatur deleniti
+                dignissimos in optio nulla quidem ut nulla et ad molestias
+                quidem sint est quis optio nam minus ut deserunt deleniti qui
               </p>
             </div>
 
@@ -652,7 +660,11 @@ export default function AutoGuesser() {
                 Lorem ipsum
               </h2>
               <p className="text-gray-300 leading-relaxed">
-                lorem ipsum dolor sit amet consectetur adipiscing elit enim et occaecat sed fugiat est cupidatat qui occaecat irure ullamco ut ad rerum et dolorum in facere assumenda pariatur deleniti dignissimos in optio nulla quidem ut nulla et ad molestias quidem sint est quis optio nam minus ut deserunt deleniti qui
+                lorem ipsum dolor sit amet consectetur adipiscing elit enim et
+                occaecat sed fugiat est cupidatat qui occaecat irure ullamco ut
+                ad rerum et dolorum in facere assumenda pariatur deleniti
+                dignissimos in optio nulla quidem ut nulla et ad molestias
+                quidem sint est quis optio nam minus ut deserunt deleniti qui
               </p>
             </div>
 
@@ -661,7 +673,11 @@ export default function AutoGuesser() {
                 Lorem Ipsum
               </h2>
               <p className="text-gray-300 leading-relaxed">
-                lorem ipsum dolor sit amet consectetur adipiscing elit enim et occaecat sed fugiat est cupidatat qui occaecat irure ullamco ut ad rerum et dolorum in facere assumenda pariatur deleniti dignissimos in optio nulla quidem ut nulla et ad molestias quidem sint est quis optio nam minus ut deserunt deleniti qui
+                lorem ipsum dolor sit amet consectetur adipiscing elit enim et
+                occaecat sed fugiat est cupidatat qui occaecat irure ullamco ut
+                ad rerum et dolorum in facere assumenda pariatur deleniti
+                dignissimos in optio nulla quidem ut nulla et ad molestias
+                quidem sint est quis optio nam minus ut deserunt deleniti qui
               </p>
             </div>
           </div>
