@@ -6,7 +6,7 @@ import {
   boolean,
   pgEnum,
   primaryKey,
-  jsonb,
+  jsonb, text,
 } from "drizzle-orm/pg-core";
 export const categoryEnum = pgEnum("category", [
   "drivetrain",
@@ -66,3 +66,18 @@ export const globalStats = pgTable("global_stats", {
     .default({})
     .notNull(),
 });
+
+//table to keep track of votes for new questions
+export const pendingVotes = pgTable(
+  "pending_votes",
+  {
+    carId: uuid("car_id").references(() => cars.id).notNull(), // Change to uuid() if your cars.id is a UUID
+    attributeId: uuid("attribute_id").references(() => attributes.id).notNull(),
+    yesVotes: integer("yes_votes").default(0).notNull(),
+    noVotes: integer("no_votes").default(0).notNull(),
+  },
+  (table) => ({
+    // This ensures we only ever have one tally row per car/question combo
+    pk: primaryKey({ columns: [table.carId, table.attributeId] }), 
+  })
+);

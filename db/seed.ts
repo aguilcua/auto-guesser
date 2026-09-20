@@ -74,7 +74,7 @@ async function main() {
     // POP CULTURE
     { key: "james_bond", text: "Has a fictional spy driven one?", category: "pop_culture" },
     { key: "knight_rider", text: "Was it a TV star that could talk back to its driver?", category: "pop_culture" },
-    {key: "dicaprio", text:"Was it destroyed on set during the filming of The Wolf of Wall Street?", category: "pop_culture"},
+    { key: "dicaprio", text:"Was it destroyed on set during the filming of The Wolf of Wall Street?", category: "pop_culture"},
     { key: "fast_furious", text: "Is it famously featured in the Fast & Furious movies?", category: "pop_culture" },
     { key: "initial_d", text: "Is it famously featured in Initial D?", category: "pop_culture" },
     { key: "back_to_the_future", text: "Is it used as a time machine?", category: "pop_culture" },
@@ -83,6 +83,10 @@ async function main() {
     { key: "bmw_toyota", text: "Is it a BMW in disguise?", category: "pop_culture" },
     { key: "herbie", text: "Does it take the name of Herbie in a disney movie?", category: "pop_culture" },
     { key: "bueller", text: "Bueller...Bueller...Bueller?", category: "pop_culture" },
+
+    //test
+        { key: "sunroof", text: "Can it come with a sunroof?", category: "design" },
+
   ];
 
   // Insert questions and keep track of their generated database IDs
@@ -104,13 +108,13 @@ async function main() {
   const carRoster = [
     // JAPANESE
     { make: "Honda", model: "Prelude (BB6)", year: 1998, tags: ["fwd", "manual", "coupe", "japanese", "h_series", "us_market"] }, //
-    { make: "Honda", model: "S2000 (AP2)", year: 1999, tags: ["rwd", "manual", "convertible", "japanese", "fast_furious", "two_seater", "redline_8k", "us_market"] },//
+    { make: "Honda", model: "S2000 (AP1)", year: 1999, tags: ["rwd", "manual", "convertible", "japanese", "fast_furious", "two_seater", "redline_8k", "us_market"] },//
     { make: "Honda", model: "Civic Type R (FL5)", year: 2023, tags: ["fwd", "manual", "turbo", "hatchback", "japanese", "big_wing", "us_market"] },//
     { make: "Honda", model: "Civic Type R (EK9)", year: 1998, tags: ["fwd", "manual", "hatchback", "japanese", "redline_8k", "lightweight", "big_wing"] }, //
     { make: "Honda", model: "NSX (NA1)", year: 1990, tags: ["rwd", "manual", "v6", "coupe", "japanese", "senna", "popups", "mid_engine", "two_seater", "wedge", "redline_8k", "us_market"] },//
     { make: "Honda", model: "NSX (NC1)", year: 2016, tags: ["awd", "turbo", "twin_turbo", "v6", "hybrid", "coupe", "japanese", "mid_engine", "two_seater", "six_figure", "over_400hp", "us_market"] },//
     { make: "Acura", model: "Integra Type-R (DC2)", year: 1995, tags: ["fwd", "manual", "liftback", "japanese", "us_market", "redline_8k", "lightweight", "big_wing" ] },//
-    { make: "Acura", model: "RSX (DC5)", year: 2006, tags: ["fwd", "manual", "liftback", "japanese", "us_market"] },//
+    { make: "Acura", model: "RSX Type-S(DC5)", year: 2006, tags: ["fwd", "manual", "liftback", "japanese", "us_market"] },//
     { make: "Toyota", model: "Supra (MK4)", year: 1998, tags: ["rwd", "manual", "turbo", "twin_turbo", "inline6", "coupe", "japanese", "fast_furious", "round_taillights", "big_wing", "us_market"] },//
     { make: "Toyota", model: "Supra (MK5)", year: 2019, tags: ["rwd","liftback", "manual", "turbo", "inline6", "coupe", "japanese", "bmw_toyota", "two_seater", "us_market"] },//
     { make: "Toyota", model: "GR86 (ZN8)", year: 2022, tags: ["rwd", "manual", "coupe", "japanese", "boxer", "us_market"] },//

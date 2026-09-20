@@ -20,7 +20,7 @@ export async function POST(request: Request) {
       .where(eq(attributes.isApproved, true)). orderBy(asc(attributes.id));
 
     //naive bayes math
-    const MATCH_MULTIPLIER = 0.95;
+    const MATCH_MULTIPLIER = 2.0;
     const PENALTY_MULTIPLIER = 0.05;
 
     let scoredCars = allCars.map((car) => {
@@ -35,11 +35,15 @@ export async function POST(request: Request) {
           const isCorrectMatch = dbMapping.isMatch === userAnswer;
           probability *= isCorrectMatch ? MATCH_MULTIPLIER : PENALTY_MULTIPLIER;
         } else {
-          probability *= 0.05;
+          continue; // if a car does not have a mapping for the new question just continue.
         }
       }
-      return { ...car, probability };
+      return { ...car, probability: probability };
     });
+    const totalScore = scoredCars.reduce((sum, car) => sum + car.probability, 0)
+    scoredCars = scoredCars.map(car => ({
+      ...car, probability: totalScore > 0 ? car.probability / totalScore : 0
+    }));
     //sort by highest prob
     scoredCars.sort((a, b) => b.probability - a.probability);
 
@@ -139,12 +143,21 @@ export async function POST(request: Request) {
         console.error("Failed to record analytics telemetry:", analyticsError);
       }
     }
+
+    //ADDITIONAL QUESTION STUFF
+    let crowdSourceQuestion = null;
+    if (finalGuess && remainingAttributes.length > 0) {
+      const randIndex = Math.floor(Math.random() * remainingAttributes.length);
+      crowdSourceQuestion = remainingAttributes[randIndex];
+    }
+
     return NextResponse.json({
       success: true,
       topCars: scoredCars.slice(0, 5),
       nextQuestion: bestQuestion,
       finalGuess: finalGuess,
       universeOfCars: allCars,
+      crowdSourceQuestion: crowdSourceQuestion,
     });
   } catch (error) {
     console.error("Game engine error:", error);

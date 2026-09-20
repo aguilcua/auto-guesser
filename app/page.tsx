@@ -64,6 +64,15 @@ export default function AutoGuesser() {
   const [newCategory, setNewCategory] = useState("drivetrain");
   const [answerHistory, setAnswerHistory] = useState<string[]>([]);
 
+  //more feedback :P
+  const [crowdSourceQuestion, setCrowdSourceQuestion] = useState<any>(null);
+  const [voteSubmitted, setVoteSubmitted] = useState(false);
+  const [isVictoryConfirmed, setIsVictoryConfirmed] = useState(false);
+
+  //debug
+  const [showDebug, setShowDebug] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
   useEffect(() => {
     // Only fetch if they are actually looking at the analytics tab
     if (activeTab === "analytics") {
@@ -100,6 +109,7 @@ export default function AutoGuesser() {
 
         if (data.finalGuess) {
           setFinalGuess(data.finalGuess);
+          setCrowdSourceQuestion(data.crowdSourceQuestion || null);
           try {
             const imgRes = await fetch(
               `/api/image?query=${encodeURIComponent(data.finalGuess.make + " " + data.finalGuess.model)}&carId=${data.finalGuess.id}`,
@@ -143,6 +153,9 @@ export default function AutoGuesser() {
     setNewQuestionText("");
     fetchNextTurn({});
     setImageUrl(null);
+    setVoteSubmitted(false);
+    setIsVictoryConfirmed(false);
+    setVoteSubmitted(false);
   };
   const handleUndo = () => {
     if (answerHistory.length === 0) return;
@@ -160,6 +173,29 @@ export default function AutoGuesser() {
     setAnswers(newAnswers);
     fetchNextTurn(newAnswers);
   };
+
+  const submitCrowdSourceVote = async (isMatch: boolean | null) => {
+    if (!finalGuess || !crowdSourceQuestion || isMatch === null) {
+      setVoteSubmitted(true);
+      return;
+    }
+    try {
+      await fetch("/api/vote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          carId: finalGuess.id,
+          attributeId: crowdSourceQuestion.id,
+          isMatch: isMatch,
+        }),
+      });
+    } catch (e) {
+      console.error("Failed to submit vote", e);
+    } finally {
+      setVoteSubmitted(true);
+    }
+  };
+
 
   const submitFeedback = async () => {
     if (!selectedCarString || !newQuestionText) return;
@@ -195,6 +231,19 @@ export default function AutoGuesser() {
       {} as Record<string, { label: string; color: string }>,
     ) || {};
 
+  const handleDebugToggle = () => {
+    if (isTransitioning) return;
+    
+    setIsTransitioning(true);
+
+    setTimeout(() => {
+      setShowDebug((prev) => !prev);
+      
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 50);
+    }, 300);
+  };
   return (
     <main className="min-h-screen bg-gray-950 text-white p-4 md:p-8 font-sans">
       <div className="w-full max-w-6xl mx-auto">
@@ -233,8 +282,16 @@ export default function AutoGuesser() {
 
         {/* TAB ROUTING */}
         {activeTab === "play" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in zoom-in-95 duration-300">
-            {/* Left Column: The Game Board */}
+<div
+            className={`mx-auto w-full transition-all duration-300 ease-in-out ${
+              isTransitioning ? "opacity-0 scale-95 blur-sm" : "opacity-100 scale-100 blur-0"
+            } ${
+              showDebug
+                ? "max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-8"
+                : "max-w-2xl flex flex-col"
+            }`}
+          >
+                     {/* Left Column: The Game Board */}
             <div className="bg-gray-900 p-8 rounded-xl shadow-lg border border-gray-800 flex flex-col justify-center min-h-[400px]">
               <div className="flex justify-between items-center mb-8">
                 <button
@@ -243,17 +300,32 @@ export default function AutoGuesser() {
                 >
                   ↺ Restart
                 </button>
+                
 
-                {/* QUESTION COUNTER */}
-                <div className="text-xs font-mono font-bold text-emerald-400 bg-emerald-400/10 px-3 py-1.5 rounded-full border border-emerald-400/20 shadow-sm">
-                  # {currentQuestionNumber}
+                <div className="flex items-center gap-3">
+                  {/* DEBUG TOGGLE ICON */}
+                  <button
+                    onClick={handleDebugToggle}
+                    className={`p-1.5 rounded-lg border transition-colors ${
+                      showDebug 
+                        ? "bg-blue-600/20 border-blue-500/50 text-blue-400" 
+                        : "bg-gray-800 border-gray-700 text-gray-400 hover:bg-gray-700 hover:text-white"
+                    }`}
+                    title="Toggle Engine Predictions"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m8 2 1.88 1.88"/><path d="M14.12 3.88 16 2"/><path d="M9 7.13v-1a3.003 3.003 0 1 1 6 0v1"/><path d="M12 20c-3.3 0-6-2.7-6-6v-3a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v3c0 3.3-2.7 6-6 6"/><path d="M12 20v-9"/><path d="M6.53 9C4.6 8.8 3 7.1 3 5"/><path d="M17.47 9c1.93-.2 3.53-1.9 3.53-4"/><path d="M8 14H4"/><path d="M20 14h-4"/><path d="M9 18h-5"/><path d="M20 18h-5"/></svg>
+                  </button>
+
+                  {/* QUESTION COUNTER */}
+                  <div className="text-xs font-mono font-bold text-emerald-400 bg-emerald-400/10 px-3 py-1.5 rounded-full border border-emerald-400/20 shadow-sm">
+                    # {currentQuestionNumber}
+                  </div>
                 </div>
               </div>
               <div className="min-h-[250px] flex items-center justify-center text-center mb-8">
-                {loading ? (
+                {loading && !currentQuestion && !finalGuess ? (
                   <div className="animate-pulse space-y-4">
                     <div className="h-6 bg-gray-700 rounded w-3/4"></div>
-                    <div className="h-12 bg-gray-700 rounded w-full"></div>
                   </div>
                 ) : finalGuess ? (
                   feedbackMode ? (
@@ -332,6 +404,7 @@ export default function AutoGuesser() {
                       <p className="text-gray-400 mb-6">
                         Are you thinking of the...
                       </p>
+                      
                       {/* image render section */}
                       {imageUrl && (
                         <div className="mb-6 flex justify-center animate-in fade-in zoom-in duration-700">
@@ -342,41 +415,81 @@ export default function AutoGuesser() {
                           />
                         </div>
                       )}
+                      
                       <div className="text-4xl font-extrabold text-white mb-8 bg-gray-800 py-6 rounded-lg border border-gray-700">
                         {finalGuess.make} {finalGuess.model}
                       </div>
-                      <div className="flex gap-4">
-                        <button
-                          onClick={handleRestart}
-                          className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-lg font-bold text-lg transition-colors shadow-lg"
-                        >
-                          Thats a Bingo!!!
-                        </button>
-                        <button
-                          onClick={() => setFeedbackMode(true)}
-                          className="flex-1 bg-red-600 hover:bg-red-500 text-white py-4 rounded-lg font-bold text-lg transition-colors shadow-lg"
-                        >
-                          No, incorrect...
-                        </button>
-                      </div>
+
+                      {isVictoryConfirmed ? (
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+                          {crowdSourceQuestion && !voteSubmitted ? (
+                            <div className="mb-6 p-4 bg-gray-800 rounded-xl border border-gray-600">
+                              <p className="text-sm font-semibold text-emerald-400 mb-2">HELP US GET SMARTER</p>
+                              <p className="text-white mb-4">
+                                Does the <span className="font-bold">{finalGuess.model}</span> match this description?
+                                <br/>
+                                <span className="italic text-gray-300 mt-2 block">"{crowdSourceQuestion.questionText}"</span>
+                              </p>
+                              
+                              <div className="grid grid-cols-3 gap-2">
+                                <button onClick={() => submitCrowdSourceVote(true)} className="py-3 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-white font-bold transition-colors">Yes</button>
+                                <button onClick={() => submitCrowdSourceVote(false)} className="py-3 bg-red-600 hover:bg-red-500 rounded-lg text-white font-bold transition-colors">No</button>
+                                <button onClick={() => submitCrowdSourceVote(null)} className="py-3 bg-gray-600 hover:bg-gray-500 rounded-lg text-white font-bold transition-colors">Skip</button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="mb-6 text-emerald-400 font-bold italic">
+                              {voteSubmitted ? "Thanks for contributing!" : ""}
+                            </div>
+                          )}
+
+                          <button
+                            onClick={() => {
+                              handleRestart();
+                              setIsVictoryConfirmed(false);
+                              setVoteSubmitted(false);
+                            }}
+                            className="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-lg font-bold text-lg transition-colors shadow-lg"
+                          >
+                            Play Again
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex gap-4">
+                          <button
+                            onClick={() => {
+                              console.log("🔥 BINGO CLICKED! Current Question State is:", crowdSourceQuestion);
+                              setIsVictoryConfirmed(true);}} 
+                            className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-lg font-bold text-lg transition-colors shadow-lg"
+                          >
+                            Thats a Bingo!!!
+                          </button>
+                          <button
+                            onClick={() => setFeedbackMode(true)}
+                            className="flex-1 bg-red-600 hover:bg-red-500 text-white py-4 rounded-lg font-bold text-lg transition-colors shadow-lg"
+                          >
+                            No, incorrect...
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )
                 ) : currentQuestion ? (
-                  <div className="animate-in slide-in-from-right-4 duration-300">
-                    <h2
-                      key={currentQuestion.id}
-                      className="text-2xl md:text-3xl font-semibold text-white animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-500 mb-8 min-h-[60px]"
-                    >
-                      {currentQuestion.questionText}
-                    </h2>
+                  <div className="w-full">
+                    
+                    {/* Fixed Height Text Container */}
+                    <div className="min-h-[120px] flex items-center justify-center mb-8">
+                      <h2
+                        key={currentQuestion.id}
+                        className="text-2xl md:text-3xl font-semibold text-white animate-in fade-in slide-in-from-right-8 duration-300"
+                      >
+                        {currentQuestion.questionText}
+                      </h2>
+                    </div>
 
                     {/* ANSWER BUTTONS */}
                     <div
-                      className={`w-full max-w-sm sm:max-w-md mx-auto grid grid-cols-2 sm:grid-cols-3 gap-3 transition-opacity duration-150 ${
-                        loading
-                          ? "opacity-70 pointer-events-none"
-                          : "opacity-100"
-                      }`}
+                      className={`w-full max-w-sm sm:max-w-md mx-auto grid grid-cols-2 sm:grid-cols-3 gap-3`}
                     >
                       <button
                         onClick={() => handleAnswer(true)}
@@ -400,14 +513,15 @@ export default function AutoGuesser() {
                       </button>
                     </div>
 
-                    {/* undo button */}
+                    {/* Undo Button */}
                     {answerHistory.length > 0 && (
-                      <div className="mt-6 flex justify-center animate-in fade-in duration-300">
+                      <div className="mt-6 flex justify-center">
                         <button
                           onClick={handleUndo}
-                          className="flex items-center gap-2 text-sm font-medium text-gray-400 hover:text-blue-400 transition-colors px-4 py-2 rounded-lg hover:bg-gray-800"
+                          disabled={loading}
+                          className={`flex items-center gap-2 text-sm font-medium text-gray-400 hover:text-blue-400 px-4 py-2 rounded-lg hover:bg-gray-800 transition-transform active:scale-95`}
                         >
-                          <svg //arrow thingy
+                          <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="16"
                             height="16"
@@ -445,7 +559,8 @@ export default function AutoGuesser() {
             </div>
 
             {/* Right Column: Live Predictions */}
-            <div className="bg-gray-900 p-8 rounded-xl shadow-lg border border-gray-800">
+            {showDebug && (
+              <div className="bg-gray-900 p-8 rounded-xl shadow-lg border border-gray-800">
               <h2 className="text-xl font-bold mb-6 text-gray-400 uppercase tracking-wider flex items-center justify-between">
                 Live Predictions
                 <span className="text-xs bg-gray-800 px-3 py-1 rounded-full text-blue-400">
@@ -483,6 +598,7 @@ export default function AutoGuesser() {
                 ))}
               </div>
             </div>
+            )}
           </div>
         )}
 
@@ -607,7 +723,7 @@ export default function AutoGuesser() {
 
               <ChartContainer
                 config={dynamicPieConfig}
-                className="h-[300px] w-full"
+                className="h-[340px] w-full"
               >
                 <PieChart>
                   <ChartTooltip content={<ChartTooltipContent />} />
@@ -644,40 +760,28 @@ export default function AutoGuesser() {
           <div className="bg-gray-900 p-8 md:p-12 rounded-xl border border-gray-800 space-y-8 animate-in fade-in zoom-in-95 duration-300">
             <div>
               <h2 className="text-2xl font-bold text-purple-400 mb-3">
-                Lorem Ipsum
+                The Mind-Reading Engine
               </h2>
               <p className="text-gray-300 leading-relaxed">
-                lorem ipsum dolor sit amet consectetur adipiscing elit enim et
-                occaecat sed fugiat est cupidatat qui occaecat irure ullamco ut
-                ad rerum et dolorum in facere assumenda pariatur deleniti
-                dignissimos in optio nulla quidem ut nulla et ad molestias
-                quidem sint est quis optio nam minus ut deserunt deleniti qui
+                Auto Guesser doesn't use a massive cheat sheet of hardcoded if/then statements. Instead, it relies on a probabilistic machine learning concept called Naive Bayes. When you start a game, every vehicle in the database has a baseline probability. Every time you answer a question, the engine recalculates the entire board. It instantly zeroes in on the cars that match your answers while mathematically sinking the ones that don't, shuffling the live leaderboard until a clear winner emerges.
               </p>
             </div>
 
             <div>
-              <h2 className="text-2xl font-bold text-purple-400 mb-3">
-                Lorem ipsum
+              <h2 className="text-2xl font-bold text-emerald-400 mb-3">
+                Powered by the Car Community
               </h2>
               <p className="text-gray-300 leading-relaxed">
-                lorem ipsum dolor sit amet consectetur adipiscing elit enim et
-                occaecat sed fugiat est cupidatat qui occaecat irure ullamco ut
-                ad rerum et dolorum in facere assumenda pariatur deleniti
-                dignissimos in optio nulla quidem ut nulla et ad molestias
-                quidem sint est quis optio nam minus ut deserunt deleniti qui
+                The engine is completely crowdsourced and actively learns from you. When the game ends, the engine will often ask you to verify a random fact about the car you were thinking of. Once three different players agree on an answer (for example, confirming that a 2001 Honda Prelude is FWD), that attribute becomes a permanent rule in the database. Every time someone plays, the matrix gets smarter, filling in its blind spots and mastering obscure automotive trivia.
               </p>
             </div>
 
             <div>
-              <h2 className="text-2xl font-bold text-purple-400 mb-3">
-                Lorem Ipsum
+              <h2 className="text-2xl font-bold text-blue-400 mb-3">
+                The Math Behind the Magic
               </h2>
               <p className="text-gray-300 leading-relaxed">
-                lorem ipsum dolor sit amet consectetur adipiscing elit enim et
-                occaecat sed fugiat est cupidatat qui occaecat irure ullamco ut
-                ad rerum et dolorum in facere assumenda pariatur deleniti
-                dignissimos in optio nulla quidem ut nulla et ad molestias
-                quidem sint est quis optio nam minus ut deserunt deleniti qui
+                Behind the scenes, the algorithm uses a relative scoring system. If a car's known attributes match your answer, its internal score doubles. If it contradicts your answer, its score gets slashed down to 5%. But what happens if the community hasn't mapped a specific detail for a car yet? It gets a free pass. Vehicles with missing data mathematically freeze their score, allowing them to hang around in the middle of the pack until they are explicitly proven right or wrong. 
               </p>
             </div>
           </div>
