@@ -1,36 +1,30 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Auto Guesser
 
-## Getting Started
+![Next JS](https://img.shields.io/badge/Next-black?style=for-the-badge&logo=next.js&logoColor=white)
+![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
+![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Drizzle](https://img.shields.io/badge/drizzle-%23C5F74F.svg?style=for-the-badge&logo=drizzle&logoColor=black)
+![PostgreSQL](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white)
+![Neon](https://img.shields.io/badge/Neon-00E599?style=for-the-badge&logo=neon&logoColor=black)
+![Vercel](https://img.shields.io/badge/vercel-%23000000.svg?style=for-the-badge&logo=vercel&logoColor=white)
 
-First, run the development server:
+Auto Guesser is a crowdsourced, digital "20 Questions" game designed for car enthusiast. Players think of a specific vehicle, and the engine asks a series of strategic questions to narrow down the possibilities. Powered by a custom Naive Bayes probabilistic model, the engine dynamically recalculates the board after every answer to reduce entropy and confidently guess the target vehicle.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+If the engine is stumped, or if a player introduces an unmapped car, the active learning pipeline allows the community to inject new attributes directly into the database, making the engine continuously smarter with every playthrough.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Key Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+*   **Naive Bayes Decision Engine**: Uses relative scoring math to weight probabilities. The engine specifically targets questions that perfectly split the remaining probability mass 50/50, ensuring maximum information gain per turn.
+*   **Active Learning & Crowdsourcing**: Players can teach the engine new cars or create new differentiating questions when the engine guesses incorrectly. 
+*   **Live Prediction Debugger**: A toggleable developer panel that exposes the live matrix mathematics, allowing players to watch the algorithm sort and recalculate the global leaderboards in real-time.
+*   **Global Analytics Dashboard**: Built with Recharts, providing visual insights into the engine's efficiency bell curve, engine blind spots, most popular cars, and highest-utilization questions.
+*   **Wikimedia Commons Image Caching**: The engine dynamically fetches and formats high-quality imagery for the final guess screen via the Wikipedia Action API, natively caching URLs in PostgreSQL to eliminate redundant network requests.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Tech Stack
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+*   **Frontend**: Next.js (App Router), React, Tailwind CSS, Shadcn UI (Radix / cmdk), Recharts
+*   **Backend**: Next.js Serverless API Routes
+*   **Database**: PostgreSQL hosted on Neon
+*   **ORM**: Drizzle ORM
+*   **Deployment**: Vercel
