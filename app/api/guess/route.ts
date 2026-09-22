@@ -17,7 +17,8 @@ export async function POST(request: Request) {
     const allAttributes = await db // only get questions that are approved.
       .select()
       .from(attributes)
-      .where(eq(attributes.isApproved, true)). orderBy(asc(attributes.id));
+      .where(eq(attributes.isApproved, true))
+      .orderBy(asc(attributes.id));
 
     //naive bayes math
     const MATCH_MULTIPLIER = 2.0;
@@ -40,9 +41,13 @@ export async function POST(request: Request) {
       }
       return { ...car, probability: probability };
     });
-    const totalScore = scoredCars.reduce((sum, car) => sum + car.probability, 0)
-    scoredCars = scoredCars.map(car => ({
-      ...car, probability: totalScore > 0 ? car.probability / totalScore : 0
+    const totalScore = scoredCars.reduce(
+      (sum, car) => sum + car.probability,
+      0,
+    );
+    scoredCars = scoredCars.map((car) => ({
+      ...car,
+      probability: totalScore > 0 ? car.probability / totalScore : 0,
     }));
     //sort by highest prob
     scoredCars.sort((a, b) => b.probability - a.probability);
@@ -64,7 +69,7 @@ export async function POST(request: Request) {
     //determine next question
     const answeredAttributesIds = Object.keys(safeAnswers);
     const remainingAttributes = allAttributes.filter(
-      (attr) => !answeredAttributesIds.includes(attr.id)
+      (attr) => !answeredAttributesIds.includes(attr.id),
     );
 
     const topContenders = scoredCars.slice(0, 20);
@@ -72,19 +77,31 @@ export async function POST(request: Request) {
 
     let bestQuestion = null;
     let bestScore = -1;
-  
 
     if (!finalGuess && totalContenders > 0 && remainingAttributes.length > 0) {
+      const totalProb = topContenders.reduce(
+        (sum, car) => sum + car.probability,
+        0,
+      );
+
       for (const attr of remainingAttributes) {
-        let yesCount = 0;
+        let yesProb = 0;
+        let mappedProb = 0;
+
         for (const car of topContenders) {
           const mapping = allMappings.find(
             (m) => m.carId === car.id && m.attributeId === attr.id,
           );
-          if (mapping?.isMatch) yesCount++;
+
+          if (mapping) {
+            mappedProb += car.probability;
+            if (mapping.isMatch) yesProb += car.probability;
+          }
         }
 
-        const ratio = yesCount / totalContenders;
+        if (mappedProb < totalProb * 0.2) continue;
+
+        const ratio = mappedProb > 0 ? yesProb / mappedProb : 0;
         const splitScore = 0.5 - Math.abs(ratio - 0.5);
 
         if (splitScore > bestScore) {
@@ -101,11 +118,14 @@ export async function POST(request: Request) {
       scoredCars.length > 0
     ) {
       finalGuess = scoredCars[0];
-    } 
+    }
     // increment ask count for questions
-    if(bestQuestion) {
+    if (bestQuestion) {
       try {
-        await db.update(attributes).set({askCount: sql`${attributes.askCount} + 1`}).where(eq(attributes.id, bestQuestion.id));
+        await db
+          .update(attributes)
+          .set({ askCount: sql`${attributes.askCount} + 1` })
+          .where(eq(attributes.id, bestQuestion.id));
       } catch (error) {
         console.error("Failed to increase ask count", error);
       }
@@ -125,8 +145,9 @@ export async function POST(request: Request) {
 
         if (statsRecords.length > 0) {
           const currentStats = statsRecords[0];
-          const distribution = (currentStats.gameLengthDistribution || {}) as Record<string, number>;
-          
+          const distribution = (currentStats.gameLengthDistribution ||
+            {}) as Record<string, number>;
+
           const countKey = questionCount.toString();
           distribution[countKey] = (distribution[countKey] || 0) + 1;
 
@@ -155,13 +176,15 @@ export async function POST(request: Request) {
       success: true,
       topCars: scoredCars.slice(0, 5),
       nextQuestion: bestQuestion,
-      finalGuess: finalGuess ? {
-        id: finalGuess.id,
-        make: finalGuess.make,
-        model: finalGuess.model,
-        probability: finalGuess.probability,
-        guesses: (finalGuess.guessCount || 0) + 1 
-      } : null,
+      finalGuess: finalGuess
+        ? {
+            id: finalGuess.id,
+            make: finalGuess.make,
+            model: finalGuess.model,
+            probability: finalGuess.probability,
+            guesses: (finalGuess.guessCount || 0) + 1,
+          }
+        : null,
       universeOfCars: allCars,
       crowdSourceQuestion: crowdSourceQuestion,
     });
