@@ -111,10 +111,10 @@ export async function POST(request: Request) {
       }
     }
 
-    // if no remaining questions then pick the most likely.
+    // if no remaining questions or tiebreaker moment
     if (
       !finalGuess &&
-      remainingAttributes.length === 0 &&
+      !bestQuestion &&
       scoredCars.length > 0
     ) {
       finalGuess = scoredCars[0];
