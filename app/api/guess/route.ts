@@ -155,7 +155,13 @@ export async function POST(request: Request) {
       success: true,
       topCars: scoredCars.slice(0, 5),
       nextQuestion: bestQuestion,
-      finalGuess: finalGuess,
+      finalGuess: finalGuess ? {
+        id: finalGuess.id,
+        make: finalGuess.make,
+        model: finalGuess.model,
+        probability: finalGuess.probability,
+        guesses: (finalGuess.guessCount || 0) + 1 
+      } : null,
       universeOfCars: allCars,
       crowdSourceQuestion: crowdSourceQuestion,
     });

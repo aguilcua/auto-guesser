@@ -27,6 +27,7 @@ interface Car {
   make: string;
   model: string;
   probability: number;
+  guesses?: number;
 }
 
 interface Question {
@@ -438,8 +439,16 @@ export default function AutoGuesser() {
                         </div>
                       )}
 
-                      <div className="text-4xl font-extrabold text-white mb-8 bg-gray-800 py-6 rounded-lg border border-gray-700">
-                        {finalGuess.make} {finalGuess.model}
+                      <div className="bg-gray-800 py-6 rounded-lg border border-gray-700 mb-8 flex flex-col items-center gap-3">
+                        <div className="text-4xl font-extrabold text-white">
+                          {finalGuess.make} {finalGuess.model}
+                        </div>
+                        
+                        {finalGuess.guesses !== undefined && (
+                          <div className="text-xs font-bold text-gray-400 uppercase tracking-widest bg-gray-900 px-4 py-1.5 rounded-full border border-gray-700 shadow-inner animate-in fade-in zoom-in duration-500 delay-300 fill-mode-both">
+                            Guessed {finalGuess.guesses} times globally
+                          </div>
+                        )}
                       </div>
 
                       {isVictoryConfirmed ? (
@@ -447,7 +456,7 @@ export default function AutoGuesser() {
                           {crowdSourceQuestion && !voteSubmitted ? (
                             <div className="mb-6 p-4 bg-gray-800 rounded-xl border border-gray-600">
                               <p className="text-sm font-semibold text-emerald-400 mb-2">
-                                HELP US GET SMARTER
+                                HELP MAKE IT SMARTER
                               </p>
                               <p className="text-white mb-4">
                                 Does the{" "}
@@ -524,9 +533,24 @@ export default function AutoGuesser() {
                     </div>
                   )
                 ) : currentQuestion ? (
-                  <div className="w-full">
-                    {/* Fixed Height Text Container */}
-                    <div className="min-h-[120px] flex items-center justify-center mb-8">
+                  <div className="w-full relative">
+                    
+                    {/* AKINATOR-STYLE LOADING INDICATOR */}
+                    <div 
+                      className={`absolute top-0 left-0 w-full flex justify-center transition-all duration-300 z-10 ${
+                        loading ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4 pointer-events-none"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 bg-gray-900 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.2)] px-5 py-2.5 rounded-full">
+                        <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-sm font-bold text-blue-400 animate-pulse">Processing...</span>
+                      </div>
+                    </div>
+
+                    {/* Fixed Height Text Container - Blurs out when loading */}
+                    <div className={`min-h-[120px] flex items-center justify-center mb-8 mt-4 transition-all duration-300 ${
+                      loading ? "opacity-30 blur-sm scale-95" : "opacity-100 blur-0 scale-100"
+                    }`}>
                       <h2
                         key={currentQuestion.id}
                         className="text-2xl md:text-3xl font-semibold text-white animate-in fade-in slide-in-from-right-8 duration-300"
@@ -535,39 +559,42 @@ export default function AutoGuesser() {
                       </h2>
                     </div>
 
-                    {/* ANSWER BUTTONS */}
+                    {/* ANSWER BUTTONS - Greys out completely when loading */}
                     <div
                       className={`w-full max-w-sm sm:max-w-md mx-auto grid grid-cols-2 sm:grid-cols-3 gap-3`}
                     >
                       <button
                         onClick={() => handleAnswer(true)}
-                        className="col-span-1 py-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-bold text-white shadow-md transition-transform active:scale-95"
+                        disabled={loading}
+                        className="col-span-1 py-3 bg-emerald-600 hover:bg-emerald-500 disabled:bg-gray-800 disabled:text-gray-600 disabled:shadow-none rounded-xl font-bold text-white shadow-md transition-all active:scale-95"
                       >
                         Yes
                       </button>
 
                       <button
                         onClick={() => handleAnswer(false)}
-                        className="col-span-1 py-3 bg-red-600 hover:bg-red-500 rounded-xl font-bold text-white shadow-md transition-transform active:scale-95"
+                        disabled={loading}
+                        className="col-span-1 py-3 bg-red-600 hover:bg-red-500 disabled:bg-gray-800 disabled:text-gray-600 disabled:shadow-none rounded-xl font-bold text-white shadow-md transition-all active:scale-95"
                       >
                         No
                       </button>
 
                       <button
                         onClick={() => handleAnswer(null)}
-                        className="col-span-2 sm:col-span-1 py-3 bg-gray-700 hover:bg-gray-600 rounded-xl font-bold text-white shadow-md transition-transform active:scale-95"
+                        disabled={loading}
+                        className="col-span-2 sm:col-span-1 py-3 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:text-gray-600 disabled:shadow-none rounded-xl font-bold text-white shadow-md transition-all active:scale-95"
                       >
                         Don't Know
                       </button>
                     </div>
 
-                    {/* Undo Button */}
+                    {/* Undo Button - Greys out when loading */}
                     {answerHistory.length > 0 && (
                       <div className="mt-6 flex justify-center">
                         <button
                           onClick={handleUndo}
                           disabled={loading}
-                          className={`flex items-center gap-2 text-sm font-medium text-gray-400 hover:text-blue-400 px-4 py-2 rounded-lg hover:bg-gray-800 transition-transform active:scale-95`}
+                          className="flex items-center gap-2 text-sm font-medium text-gray-400 hover:text-blue-400 disabled:text-gray-700 disabled:hover:text-gray-700 disabled:hover:bg-transparent px-4 py-2 rounded-lg hover:bg-gray-800 transition-all active:scale-95"
                         >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
