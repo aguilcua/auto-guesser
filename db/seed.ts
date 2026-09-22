@@ -180,7 +180,7 @@ async function main() {
     { make: "Porsche", model: "911 Carrera 992", year: 2024, tags: ["rwd", "manual", "turbo", "twin_turbo", "coupe", "european", "boxer", "german", "rear_engine", "us_market", "2+2"] },
     { make: "Porsche", model: "911 GT3 997", year: 2007, tags: ["rwd", "manual", "coupe", "european", "boxer", "german", "rear_engine", "redline_8k", "big_wing", "six_figure", "over_400hp", "us_market", "2+2"] },
     { make: "Porsche", model: "944 Turbo", year: 1986, tags: ["rwd", "manual", "turbo", "coupe", "european", "popups", "german", "us_market", "2+2"] },
-    { make: "Porsche", model: "Carrera GT 980", year: 2003, tags: ["mid-engine", "big_cyl", "over_400hp","redline_8k", "big_wing", "six_figure", "german", "manual", "european"] },
+    { make: "Porsche", model: "Carrera GT 980", year: 2003, tags: ["mid_engine", "big_cyl", "over_400hp","redline_8k", "big_wing", "six_figure", "german", "manual", "european"] },
     { make: "Porsche", model: "944", year: 1986, tags: ["rwd", "manual", "coupe", "european", "popups", "german", "us_market", "2+2"] }, // Base added
     { make: "Porsche", model: "Cayman GT4 981", year: 2016, tags: ["rwd", "manual", "coupe", "european", "boxer", "mid_engine", "german", "two_seater", "big_wing", "us_market"] },
     { make: "Porsche", model: "Cayman 981", year: 2016, tags: ["rwd", "manual", "coupe", "european", "boxer", "mid_engine", "german", "two_seater", "us_market"] }, // Base added
@@ -211,7 +211,7 @@ async function main() {
     { make: "Lamborghini", model: "Countach LP5000 QV", year: 1985, tags: ["rwd", "manual", "big_cyl", "coupe", "european", "popups", "italian", "mid_engine", "two_seater", "unusual_doors", "wedge", "six_figure", "limited_run", "over_400hp", "us_market", "dicaprio"] },
     { make: "Aston Martin", model: "DB5", year: 1964, tags: ["rwd", "manual", "coupe", "european", "british", "james_bond", "limited_run", "us_market", "2+2"] },
     { make: "McLaren", model: "F1", year: 1993, tags: ["rwd", "manual", "big_cyl", "coupe", "european", "british", "mid_engine", "unusual_doors", "wedge", "six_figure", "limited_run", "over_400hp"] },
-{ make: "McLaren", model: "P1", year: 2014, tags: ["rwd", "automatic", "v8", "hybrid", "turbocharged", "coupe", "european", "british", "mid_engine", "unusual_doors", "six_figure", "limited_run", "over_400hp"] },    { make: "Lotus", model: "Elise S1", year: 1996, tags: ["rwd", "manual", "convertible", "european", "british", "mid_engine", "two_seater", "lightweight"] },
+    { make: "McLaren", model: "P1", year: 2014, tags: ["rwd", "v8", "hybrid", "turbo", "coupe", "european", "british", "mid_engine", "unusual_doors", "six_figure", "limited_run", "over_400hp"] },    { make: "Lotus", model: "Elise S1", year: 1996, tags: ["rwd", "manual", "convertible", "european", "british", "mid_engine", "two_seater", "lightweight"] },
     { make: "Land Rover", model: "Defender 110", year: 1990, tags: ["awd", "manual", "suv", "european", "british", "boxy"] },
     { make: "Volvo", model: "240", year: 1990, tags: ["rwd", "manual", "sedan", "european", "boxy", "us_market"] },
 
