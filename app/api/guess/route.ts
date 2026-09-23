@@ -54,6 +54,21 @@ export async function POST(request: Request) {
     scoredCars.sort((a, b) => b.probability - a.probability);
 
     let finalGuess = null;
+    
+    if (scoredCars.length >= 2) {
+      const topCar = scoredCars[0];
+      const runnerUp = scoredCars[1];
+      const questionCount = Object.keys(safeAnswers).length;
+
+      const absoluteDominance = topCar.probability > 0.80;
+
+      const relativeCertainty = questionCount >= 6 && topCar.probability > (runnerUp.probability * 5);
+
+      if (absoluteDominance || relativeCertainty) {
+        finalGuess = topCar;
+      }
+    }
+
     //determine next question
     const answeredAttributesIds = Object.keys(safeAnswers);
     const remainingAttributes = allAttributes.filter(
@@ -72,19 +87,7 @@ export async function POST(request: Request) {
 
     const totalContenders = topContenders.length;
 
-    // Shannon Entropy
-    const currentEntropy = scoredCars.reduce((sum, car) => {
-      if (car.probability <= 0) return sum;
-      return sum - (car.probability * Math.log2(car.probability));
-    }, 0);
-
-    const ENTROPY_THRESHOLD = 0.60; 
-
-    //win condition
-    if (scoredCars.length > 0 && currentEntropy < ENTROPY_THRESHOLD) {
-      finalGuess = scoredCars[0];
-    }
-
+    // next question determination
     // next question determination
     let bestQuestion = null;
     let bestScore = -1;
@@ -94,7 +97,7 @@ export async function POST(request: Request) {
 
       for (const attr of remainingAttributes) {
         let yesProb = 0;
-        let mappedProb = 0;
+        let noProb = 0; // Track noProb to see both explicit sides of the matrix
 
         for (const car of topContenders) {
           const mapping = allMappings.find(
@@ -102,15 +105,17 @@ export async function POST(request: Request) {
           );
 
           if (mapping) {
-            mappedProb += car.probability;
             if (mapping.isMatch) yesProb += car.probability;
+            else noProb += car.probability;
           }
         }
 
-        if (mappedProb < totalProb * 0.2) continue;
-
-        const ratio = mappedProb > 0 ? yesProb / mappedProb : 0;
-        const splitScore = 0.5 - Math.abs(ratio - 0.5);
+        // Evaluate the split against the ENTIRE pool, treating Unknowns as neutral weight.
+        // A perfect question splits the total pool 50/50. 
+        const effectiveRatio = Math.max(yesProb, noProb) / totalProb;
+        
+        // Example: If only the R32 has Godzilla (20.1% of pool), score is ~0.20
+        const splitScore = 0.5 - Math.abs(effectiveRatio - 0.5);
 
         if (splitScore > bestScore) {
           bestScore = splitScore;
@@ -120,9 +125,8 @@ export async function POST(request: Request) {
     }
 
     // Win Condition B: Knowledge Exhaustion 
-    // If the best available question has a terrible split score (e.g., < 0.1),
-    // the engine knows asking it won't help differentiate the remaining cars.
-    if (!finalGuess && (!bestQuestion || bestScore < 0.1) && scoredCars.length > 0) {
+    // less than 2% of the remaining probability mass.
+    if (!finalGuess && (!bestQuestion || bestScore < 0.02) && scoredCars.length > 0) {
       finalGuess = scoredCars[0];
     }
     // increment ask count for questions

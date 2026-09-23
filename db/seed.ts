@@ -30,7 +30,7 @@ async function main() {
     { key: "v6", text: "Is there a V6 under the hood?", category: "engine" },
     { key: "inline6", text: "Does it have an inline-six engine?", category: "engine" },
     { key: "big_cyl", text: "Does it have more than eight cylinders?", category: "engine" },
-    { key: "rotary", text: "Does its engine spin in a triangle instead of using pistons?", category: "engine" },
+    { key: "rotary", text: "Is it a rotary?", category: "engine" },
     { key: "twin_turbo", text: "Does it breathe through two turbochargers?", category: "engine" },
     { key: "rear_engine", text: "Is the engine mounted behind the rear axle?", category: "engine" },
     { key: "redline_8k", text: "Does its engine have a redline of 8,000 RPM or higher?", category: "engine" },
@@ -117,9 +117,6 @@ async function main() {
     model: string;
     year: number;
     tags: string[];
-    // Optional: attributes you're deliberately confirming as FALSE.
-    // Anything in neither `tags` nor `falseTags` (and not an era key) is
-    // left as "unknown" — no row is inserted for it at all.
     falseTags?: string[];
   }
 
@@ -129,15 +126,15 @@ async function main() {
     { make: "Honda", model: "S2000 AP1", year: 1999, tags: ["rwd", "manual", "convertible", "japanese", "fast_furious", "two_seater", "redline_8k", "us_market"] },
     { make: "Honda", model: "Civic Type R FL5", year: 2023, tags: ["fwd", "manual", "turbo", "hatchback", "japanese", "big_wing", "us_market"] },
     { make: "Honda", model: "Civic Type R EK9", year: 1998, tags: ["fwd", "manual", "hatchback", "japanese", "redline_8k", "lightweight", "big_wing"] },
-    { make: "Honda", model: "NSX NA1", year: 1990, tags: ["rwd", "manual", "v6", "coupe", "japanese", "senna", "popups", "mid_engine", "two_seater", "wedge", "redline_8k", "us_market"] },
-    { make: "Honda", model: "NSX NC1", year: 2016, tags: ["awd", "turbo", "twin_turbo", "v6", "hybrid", "coupe", "japanese", "mid_engine", "two_seater", "six_figure", "over_400hp", "us_market"] },
+    { make: "Honda", model: "NSX NA1", year: 1990, tags: ["rwd", "manual", "v6", "coupe", "japanese", "senna", "popups", "mid_engine", "two_seater", "wedge", "redline_8k", "us_market"], falseTags: ["turbo", "hybrid", "six_figure", "over_400hp"] },
+    { make: "Honda", model: "NSX NC1", year: 2016, tags: ["awd", "turbo", "twin_turbo", "v6", "hybrid", "coupe", "japanese", "mid_engine", "two_seater", "six_figure", "over_400hp", "us_market"], falseTags: ["manual", "popups", "redline_8k"] },
     { make: "Acura", model: "Integra Type-R DC2", year: 1997, tags: ["fwd", "manual", "liftback", "coupe", "japanese", "us_market", "redline_8k", "lightweight", "big_wing", "2+2"] },
     { make: "Acura", model: "RSX Type-S DC5", year: 2006, tags: ["fwd", "manual", "liftback", "coupe", "japanese", "us_market", "redline_8k", "big_wing", "2+2"] },
     { make: "Toyota", model: "Supra MK4", year: 1998, tags: ["rwd", "manual", "turbo", "twin_turbo", "inline6", "coupe", "japanese", "fast_furious", "round_taillights", "big_wing", "us_market", "2+2"] },
     { make: "Toyota", model: "Supra MK5", year: 2019, tags: ["rwd", "liftback", "manual", "turbo", "inline6", "coupe", "japanese", "bmw_toyota", "two_seater", "us_market"] },
     { make: "Toyota", model: "GR86 ZN8", year: 2022, tags: ["rwd", "manual", "coupe", "japanese", "boxer", "us_market", "2+2", "lightweight"] },
     { make: "Toyota", model: "MR2 SW20", year: 1991, tags: ["rwd", "manual", "turbo", "coupe", "japanese", "mid_engine", "popups", "two_seater", "wedge", "us_market"] },
-    { make: "Toyota", model: "MR2 NA SW20", year: 1991, tags: ["rwd", "manual", "coupe", "japanese", "mid_engine", "popups", "two_seater", "wedge", "us_market"] },
+    { make: "Toyota", model: "MR2 NA SW20", year: 1991, tags: ["rwd", "manual", "coupe", "japanese", "mid_engine", "popups", "two_seater", "wedge", "us_market"], falseTags: ["turbo"] },
     { make: "Nissan", model: "Skyline GT-R R34", year: 1999, tags: ["awd", "2+2", "manual", "turbo", "twin_turbo", "inline6", "coupe", "japanese", "fast_furious", "round_taillights", "big_wing", "digital_gauge_display"] },
     { make: "Nissan", model: "Skyline R33", year: 1995, tags: ["awd", "2+2", "manual", "turbo", "twin_turbo", "inline6", "coupe", "japanese", "fast_furious", "round_taillights", "big_wing"] },
     { make: "Nissan", model: "Skyline GT-R R32", year: 1989, tags: ["awd", "2+2", "manual", "turbo", "twin_turbo", "inline6", "coupe", "japanese", "initial_d", "godzilla", "big_wing", "round_taillights"] },
@@ -157,7 +154,7 @@ async function main() {
     { make: "Toyota", model: "Sprinter Trueno (AE86)", year: 1985, tags: ["rwd", "2+2", "manual", "liftback", "japanese", "popups", "initial_d", "lightweight"] },
     { make: "Toyota", model: "Celica GT-Four (ST205)", year: 1994, tags: ["awd", "2+2", "manual", "turbo", "liftback", "coupe", "japanese", "wrc"] },
     { make: "Toyota", model: "GR Corolla", year: 2023, tags: ["awd", "manual", "turbo", "hatchback", "japanese", "us_market"] },
-    { make: "Nissan", model: "350Z", year: 2006, tags: ["rwd", "manual", "v6", "coupe", "liftback", "japanese", "fast_furious", "two_seater", "us_market"] },
+    { make: "Nissan", model: "350Z", year: 2006, tags: ["rwd", "manual", "v6", "coupe", "liftback", "japanese", "fast_furious", "two_seater", "us_market"], falseTags: ["led_boomerang_taillights"] },
     { make: "Nissan", model: "G35", year: 2006, tags: ["rwd", "manual", "v6", "coupe", "japanese", "2+2", "us_market"] },
     { make: "Nissan", model: "370Z Z34", year: 2009, tags: ["rwd", "manual", "v6", "coupe", "liftback", "japanese", "fast_furious", "two_seater", "us_market", "led_boomerang_taillights"] },
     { make: "Lexus", model: "LFA", year: 2011, tags: ["rwd", "big_cyl", "coupe", "japanese", "two_seater", "redline_8k", "six_figure", "limited_run", "over_400hp", "us_market"] },
@@ -169,16 +166,16 @@ async function main() {
     { make: "Ford", model: "Mustang S650", year: 2024, tags: ["rwd", "manual", "v8", "coupe", "american", "over_400hp", "us_market", "2+2", "tri_bar_taillights"] },
     { make: "Ford", model: "Mustang S550", year: 2016, tags: ["rwd", "manual", "v8", "coupe", "american", "over_400hp", "us_market", "2+2", "tri_bar_taillights"] },
     { make: "Ford", model: "Mustang S197", year: 2012, tags: ["rwd", "manual", "v8", "coupe", "american", "over_400hp", "us_market", "2+2", "tri_bar_taillights"] },
-    { make: "Ford", model: "Mustang Foxbody", year: 1989, tags: ["rwd", "manual", "v8", "coupe", "american", "boxy", "us_market", "2+2", "tri_bar_taillights"] },
+    { make: "Ford", model: "Mustang Foxbody", year: 1989, tags: ["rwd", "manual", "v8", "coupe", "american", "boxy", "us_market", "2+2", "tri_bar_taillights"], falseTags: ["over_400hp"] },
     { make: "Chevrolet", model: "Camaro 6th Gen", year: 2018, tags: ["rwd", "manual", "v8", "coupe", "american", "over_400hp", "us_market", "2+2"] },
     { make: "Chevrolet", model: "Camaro 5th Gen", year: 2010, tags: ["rwd", "manual", "v8", "coupe", "american", "over_400hp", "us_market", "2+2"] },
-    { make: "Chevrolet", model: "Camaro 3rd Gen", year: 1989, tags: ["rwd", "manual", "v8", "coupe", "american", "boxy", "us_market", "2+2"] },
+    { make: "Chevrolet", model: "Camaro 3rd Gen", year: 1989, tags: ["rwd", "manual", "v8", "coupe", "american", "boxy", "us_market", "2+2"], falseTags: ["over_400hp"] },
     { make: "Dodge", model: "Charger B-Body", year: 1970, tags: ["rwd", "manual", "v8", "coupe", "american", "fast_furious", "us_market"] },
     
     { make: "Chevrolet", model: "Corvette C8", year: 2023, tags: ["rwd", "v8", "coupe", "american", "mid_engine", "two_seater", "over_400hp", "us_market"] },
     { make: "Chevrolet", model: "Corvette C5", year: 1997, tags: ["rwd", "v8","manual","two_seater", "coupe", "american", "us_market"]},
     { make: "Chevrolet", model: "Corvette C2 Stingray", year: 1963, tags: ["rwd", "manual", "v8", "coupe", "american", "two_seater", "us_market"] },
-    { make: "Ford", model: "GT", year: 2005, tags: ["rwd", "manual", "turbo", "v8", "coupe", "american", "mid_engine", "two_seater", "six_figure", "limited_run", "over_400hp", "us_market"] }, // Supercharged — "turbo" question explicitly covers turbo OR supercharged
+    { make: "Ford", model: "GT", year: 2005, tags: ["rwd", "manual", "turbo", "v8", "coupe", "american", "mid_engine", "two_seater", "six_figure", "limited_run", "over_400hp", "us_market"] },
     { make: "Dodge", model: "Viper 2nd Gen", year: 1996, tags: ["rwd", "manual", "big_cyl", "coupe", "american", "two_seater", "over_400hp", "us_market"] },
     { make: "Buick", model: "Regal G-Body", year: 1987, tags: ["rwd", "turbo", "v6", "coupe", "american", "boxy", "us_market"] },
     { make: "Tesla", model: "Model 3 Highland", year: 2024, tags: ["awd", "ev", "sedan", "american", "us_market"] },
@@ -194,25 +191,25 @@ async function main() {
     { make: "Porsche", model: "911 GT3 997", year: 2007, tags: ["rwd", "manual", "coupe", "european", "boxer", "german", "rear_engine", "redline_8k", "big_wing", "six_figure", "over_400hp", "us_market", "2+2"] },
     { make: "Porsche", model: "944 Turbo", year: 1986, tags: ["rwd", "manual", "turbo", "coupe", "european", "popups", "german", "us_market", "2+2"] },
     { make: "Porsche", model: "Carrera GT 980", year: 2003, tags: ["rwd","mid_engine", "big_cyl", "rwd", "over_400hp","redline_8k", "big_wing", "six_figure", "german", "manual", "european"] },
-    { make: "Porsche", model: "944", year: 1986, tags: ["rwd", "manual", "coupe", "european", "popups", "german", "us_market", "2+2"] }, // Base added
+    { make: "Porsche", model: "944", year: 1986, tags: ["rwd", "manual", "coupe", "european", "popups", "german", "us_market", "2+2"], falseTags: ["turbo"] }, 
     { make: "Porsche", model: "Cayman GT4 981", year: 2016, tags: ["rwd", "manual", "coupe", "european", "boxer", "mid_engine", "german", "two_seater", "big_wing", "us_market"] },
-    { make: "Porsche", model: "Cayman 981", year: 2016, tags: ["rwd", "manual", "coupe", "european", "boxer", "mid_engine", "german", "two_seater", "us_market"] }, // Base added
+    { make: "Porsche", model: "Cayman 981", year: 2016, tags: ["rwd", "manual", "coupe", "european", "boxer", "mid_engine", "german", "two_seater", "us_market"], falseTags: ["big_wing"] }, 
     { make: "Volkswagen", model: "Golf GTI MK8", year: 2024, tags: ["fwd", "manual", "turbo", "hatchback", "european", "german", "us_market", "factory_lsd"] },
-    { make: "Volkswagen", model: "Golf MK8", year: 2024, tags: ["fwd", "manual", "turbo", "hatchback", "european", "german", "us_market"] }, // Base added
+    { make: "Volkswagen", model: "Golf MK8", year: 2024, tags: ["fwd", "manual", "turbo", "hatchback", "european", "german", "us_market"], falseTags: ["factory_lsd"] }, 
     { make: "Volkswagen", model: "Golf R32 MK4", year: 2004, tags: ["awd", "manual", "v6", "hatchback", "european", "german", "us_market"] },
-    { make: "Volkswagen", model: "Golf MK4", year: 2004, tags: ["fwd", "manual", "hatchback", "european", "german", "us_market"] }, // Base added
+    { make: "Volkswagen", model: "Golf MK4", year: 2004, tags: ["fwd", "manual", "hatchback", "european", "german", "us_market"], falseTags: ["v6"] }, 
     { make: "Volkswagen", model: "Beetle Type 1", year: 1968, tags: ["rwd", "manual", "coupe", "european", "boxer", "german", "rear_engine", "lightweight", "us_market", "herbie"] },
     { make: "BMW", model: "M3 E30", year: 1988, tags: ["rwd", "manual", "coupe", "european", "german", "boxy", "us_market", "factory_lsd"] },
-    { make: "BMW", model: "3 Series E30", year: 1988, tags: ["rwd", "manual", "coupe", "european", "german", "boxy", "us_market"] }, // Base added
+    { make: "BMW", model: "3 Series E30", year: 1988, tags: ["rwd", "manual", "coupe", "european", "german", "boxy", "us_market"], falseTags: ["factory_lsd"] }, 
     { make: "BMW", model: "M3 E46 Coupe", year: 2000, tags: ["rwd", "manual", "inline6", "coupe", "european", "german", "redline_8k", "us_market"] },
-    { make: "BMW", model: "3 Series E46", year: 2000, tags: ["rwd", "manual", "inline6", "coupe", "european", "german", "us_market"] }, // Base added
+    { make: "BMW", model: "3 Series E46", year: 2000, tags: ["rwd", "manual", "inline6", "coupe", "european", "german", "us_market"], falseTags: ["redline_8k"] }, 
     { make: "BMW", model: "M3 E90", year: 2010, tags: ["rwd", "manual", "v8", "coupe", "european", "german", "redline_8k", "over_400hp", "us_market"] },
-    { make: "BMW", model: "335i E92", year: 2010, tags: ["rwd", "manual", "inline6", "coupe", "european", "german", "us_market"] }, // Base added
+    { make: "BMW", model: "335i E92", year: 2010, tags: ["rwd", "manual", "inline6", "coupe", "european", "german", "us_market"], falseTags: ["redline_8k", "over_400hp"] }, 
     { make: "Alfa Romeo", model: "Giulia Quadrifoglio", year: 2017, tags: ["rwd", "turbo", "twin_turbo", "v6", "sedan", "european", "italian", "over_400hp", "us_market"] },
-    { make: "Mini", model: "Cooper S R53", year: 2005, tags: ["fwd", "manual", "turbo", "hatchback", "european", "british", "us_market"] }, // Supercharged — "turbo" question explicitly covers turbo OR supercharged
-    { make: "Mini", model: "Cooper R50", year: 2005, tags: ["fwd", "manual", "hatchback", "european", "british", "us_market"] }, // Base naturally aspirated added
+    { make: "Mini", model: "Cooper S R53", year: 2005, tags: ["fwd", "manual", "turbo", "hatchback", "european", "british", "us_market"] }, 
+    { make: "Mini", model: "Cooper R50", year: 2005, tags: ["fwd", "manual", "hatchback", "european", "british", "us_market"], falseTags: ["turbo"] }, 
     { make: "Peugeot", model: "205 GTI", year: 1986, tags: ["fwd", "manual", "hatchback", "european", "lightweight", "flared_arches"] },
-    { make: "Peugeot", model: "205", year: 1986, tags: ["fwd", "manual", "hatchback", "european", "lightweight"] }, // Base added
+    { make: "Peugeot", model: "205", year: 1986, tags: ["fwd", "manual", "hatchback", "european", "lightweight"], falseTags: ["flared_arches"] }, 
     { make: "Audi", model: "R8 Type 42", year: 2015, tags: ["awd", "manual", "v8", "coupe", "european", "german", "mid_engine", "two_seater", "six_figure", "over_400hp", "us_market"] },
     { make: "Audi", model: "Quattro Ur-Quattro", year: 1984, tags: ["awd", "manual", "turbo", "coupe", "european", "german", "boxy", "wrc"] },
     { make: "Mercedes-Benz", model: "SLS AMG", year: 2011, tags: ["rwd", "v8", "coupe", "european", "german", "unusual_doors", "two_seater", "six_figure", "over_400hp", "us_market"] },
@@ -283,18 +280,6 @@ async function main() {
     { keys: ["german", "italian", "british"], impliesTrue: "european" },
     { keys: ["truck", "suv", "sedan"] },
   ];
-  // Why `ev` isn't in the engine-layout group: a car can be a hybrid with a
-  // real ICE layout (e.g. NSX NC1 = hybrid + v6) without being "fully
-  // electric." `ev` and the ICE layouts are logically exclusive in principle,
-  // but keeping `ev` out of the auto-derivation group means it only ever
-  // gets set from an explicit tag/falseTag, never silently inferred.
-  //
-  // Why `big_cyl` isn't in the group either: it's a cylinder-COUNT threshold
-  // (>8), while v8/v6/inline6/boxer/rotary mix count and layout together.
-  // Count and layout aren't actually the same axis — a flat-12 is both
-  // `boxer` (layout) and `big_cyl` (count) at once. The Ferrari Testarossa
-  // is exactly this case in the roster below; including big_cyl here would
-  // make the seed throw a false contradiction on it.
 
   for (const group of exclusivityGroups) {
     for (const key of [...group.keys, ...(group.impliesTrue ? [group.impliesTrue] : [])]) {
@@ -304,9 +289,7 @@ async function main() {
     }
   }
 
-  // Resolves a car's raw tags/falseTags against the exclusivity groups:
-  // applies `impliesTrue` cascades, then derives false for every other
-  // member of a group once one member is confirmed true.
+
   function resolveExclusivity(
     carLabel: string,
     rawTrue: Set<string>,
@@ -314,8 +297,7 @@ async function main() {
   ): { trueTags: Set<string>; falseTags: Set<string> } {
     const trueTags = new Set(rawTrue);
 
-    // Cascade implications to a fixed point (a couple passes is plenty for
-    // how shallow this hierarchy is, but looping handles future nesting).
+
     for (let pass = 0; pass < 3; pass++) {
       let changed = false;
       for (const group of exclusivityGroups) {
@@ -368,11 +350,6 @@ async function main() {
     );
     const era = eraAnswers(carData.year);
 
-    // Only insert a row when we actually have a confirmed answer for this
-    // car+question. If a question is neither in `tags`, `falseTags`, nor an
-    // era key, we deliberately insert NOTHING — an absent row is read by the
-    // guessing engine (route.ts) as "unknown," and stays neutral instead of
-    // silently counting as a confirmed "no."
     const mappings: { carId: string; attributeId: any; isMatch: boolean }[] = [];
     for (const q of questionData) {
       if (q.key in era) {
@@ -382,7 +359,6 @@ async function main() {
       } else if (falseTags.has(q.key)) {
         mappings.push({ carId: insertedCar.id, attributeId: qMap.get(q.key), isMatch: false });
       }
-      // else: left unasserted on purpose — unknown, not false.
     }
 
     if (mappings.length > 0) {
