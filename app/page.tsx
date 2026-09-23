@@ -253,8 +253,8 @@ export default function AutoGuesser() {
             Auto Guesser
           </h1>
           <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-            Think of a car, the model will attempt to read your mind. Guesses
-            are powered by a Naive-Bayes algorithm.
+            Think of a car, the model will attempt to guess the Make and Model.
+            Guesses are powered by a Naive-Bayes algorithm.
           </p>
         </div>
 
@@ -443,7 +443,7 @@ export default function AutoGuesser() {
                         <div className="text-4xl font-extrabold text-white">
                           {finalGuess.make} {finalGuess.model}
                         </div>
-                        
+
                         {finalGuess.guesses !== undefined && (
                           <div className="text-xs font-bold text-gray-400 uppercase tracking-widest bg-gray-900 px-4 py-1.5 rounded-full border border-gray-700 shadow-inner animate-in fade-in zoom-in duration-500 delay-300 fill-mode-both">
                             Guessed {finalGuess.guesses} times globally
@@ -512,10 +512,6 @@ export default function AutoGuesser() {
                         <div className="flex gap-4">
                           <button
                             onClick={() => {
-                              console.log(
-                                "🔥 BINGO CLICKED! Current Question State is:",
-                                crowdSourceQuestion,
-                              );
                               setIsVictoryConfirmed(true);
                             }}
                             className="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-lg font-bold text-lg transition-colors shadow-lg"
@@ -534,23 +530,30 @@ export default function AutoGuesser() {
                   )
                 ) : currentQuestion ? (
                   <div className="w-full relative">
-                    
-                    {/* AKINATOR-STYLE LOADING INDICATOR */}
-                    <div 
+                    {/* LOADING INDICATOR */}
+                    <div
                       className={`absolute top-0 left-0 w-full flex justify-center transition-all duration-300 z-10 ${
-                        loading ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4 pointer-events-none"
+                        loading
+                          ? "opacity-100 translate-y-0"
+                          : "opacity-0 -translate-y-4 pointer-events-none"
                       }`}
                     >
                       <div className="flex items-center gap-3 bg-gray-900 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.2)] px-5 py-2.5 rounded-full">
                         <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
-                        <span className="text-sm font-bold text-blue-400 animate-pulse">Processing...</span>
+                        <span className="text-sm font-bold text-blue-400 animate-pulse">
+                          Processing...
+                        </span>
                       </div>
                     </div>
 
                     {/* Fixed Height Text Container - Blurs out when loading */}
-                    <div className={`min-h-[120px] flex items-center justify-center mb-8 mt-4 transition-all duration-300 ${
-                      loading ? "opacity-30 blur-sm scale-95" : "opacity-100 blur-0 scale-100"
-                    }`}>
+                    <div
+                      className={`min-h-[120px] flex items-center justify-center mb-8 mt-4 transition-all duration-300 ${
+                        loading
+                          ? "opacity-30 blur-sm scale-95"
+                          : "opacity-100 blur-0 scale-100"
+                      }`}
+                    >
                       <h2
                         key={currentQuestion.id}
                         className="text-2xl md:text-3xl font-semibold text-white animate-in fade-in slide-in-from-right-8 duration-300"
@@ -846,9 +849,10 @@ export default function AutoGuesser() {
                 recalculates the entire board. With each question answered, the
                 model aims at reducing entropy (reducing uncertainty), by
                 splitting the remaining cars into two separate groups based on
-                your answer. Eventually, the difference in probability between
-                the top two contenders becomes so wide, evoking a final guess
-                (and hopefully a correct answer).
+                your answer. The engine calculates the total mathematical
+                uncertainty of the entire remaining pool. Once uncertainty drops
+                to near zero (or runs out of questions) it spits out a final
+                guess.
               </p>
             </div>
 
@@ -879,14 +883,15 @@ export default function AutoGuesser() {
                 The Math Behind the Magic
               </h2>
               <p className="text-gray-300 leading-relaxed">
-                Behind the scenes the algorithm uses a relative scoring system.
-                Meaning, if a car's known attributes match your answers, its
-                score/probability doubles. If its attributes contradict your
-                answer, the score is drastically reduced. What happens if a new
-                car lacks mapping for some of its attributes? At that point in
-                this instance the car gets a neutral scoring. This way a new car
-                with missing info isn't punished and stays in the middle, until
-                further answers prove it wrong.
+                Behind the scenes, the algorithm uses a "tuned" scoring system
+                designed to reward strict accuray over sheer volume of data. If
+                a car's attributes matches your answers, its probability climbs.
+                If the car's attributes contradict your answers its score is
+                penalized, however with room for user error. What happens if a
+                new car entry is missing attributes? At that point, the car
+                recieves a neutral score. this logic ensures newer cars are not
+                punished for missing data; staying in the middle of candidates
+                until user answers prove it wrong.
               </p>
             </div>
           </div>

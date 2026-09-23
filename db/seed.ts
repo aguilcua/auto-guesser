@@ -1,8 +1,9 @@
 import { db } from "./index";
-import { cars, attributes, carAttributes, globalStats } from "./schema";
+import { cars, attributes, carAttributes, globalStats, pendingVotes } from "./schema";
 
 async function main() {
   console.log(" Clearing old data...");
+  await db.delete(pendingVotes);
   await db.delete(carAttributes);
   await db.delete(cars);
   await db.delete(attributes);
@@ -15,7 +16,7 @@ async function main() {
     // DRIVETRAIN
     { key: "fwd", text: "Is it Front-Wheel Drive (FWD)?", category: "drivetrain" },
     { key: "rwd", text: "Is it Rear-Wheel Drive (RWD)?", category: "drivetrain" },
-    { key: "awd", text: "Is it All-Wheel Drive (AWD)?", category: "drivetrain" },
+    { key: "awd", text: "Does power go to all 4 wheels?", category: "drivetrain" },
     { key: "manual", text: "Did it come with a manual transmission?", category: "drivetrain" },
     { key: "factory_lsd", text: "Does it come standard with a factory mechanical limited-slip differential?", category: "drivetrain" },
     //  ENGINE
@@ -110,7 +111,19 @@ async function main() {
   // manually added tags to cars for initial seeding
   // IF IT HAS A // THAT MEANS I ALREADY TESTED FOR IMAGE FETCHING AND DIFFERENTIATION FROM OTHER CARS.
   console.log("Seeding Cars...");
-  const carRoster = [
+
+  interface CarSeed {
+    make: string;
+    model: string;
+    year: number;
+    tags: string[];
+    // Optional: attributes you're deliberately confirming as FALSE.
+    // Anything in neither `tags` nor `falseTags` (and not an era key) is
+    // left as "unknown" — no row is inserted for it at all.
+    falseTags?: string[];
+  }
+
+  const carRoster: CarSeed[] = [
     // JAPANESE
     { make: "Honda", model: "Prelude BB6", year: 1998, tags: ["fwd", "manual", "coupe", "2+2", "japanese", "h_series", "us_market"] },
     { make: "Honda", model: "S2000 AP1", year: 1999, tags: ["rwd", "manual", "convertible", "japanese", "fast_furious", "two_seater", "redline_8k", "us_market"] },
@@ -118,13 +131,13 @@ async function main() {
     { make: "Honda", model: "Civic Type R EK9", year: 1998, tags: ["fwd", "manual", "hatchback", "japanese", "redline_8k", "lightweight", "big_wing"] },
     { make: "Honda", model: "NSX NA1", year: 1990, tags: ["rwd", "manual", "v6", "coupe", "japanese", "senna", "popups", "mid_engine", "two_seater", "wedge", "redline_8k", "us_market"] },
     { make: "Honda", model: "NSX NC1", year: 2016, tags: ["awd", "turbo", "twin_turbo", "v6", "hybrid", "coupe", "japanese", "mid_engine", "two_seater", "six_figure", "over_400hp", "us_market"] },
-    { make: "Acura", model: "Integra Type-R DC2", year: 1995, tags: ["fwd", "manual", "liftback", "japanese", "us_market", "redline_8k", "lightweight", "big_wing"] },
-    { make: "Acura", model: "RSX Type-S DC5", year: 2006, tags: ["fwd", "manual", "liftback", "japanese", "us_market", "redline_8k"] },
+    { make: "Acura", model: "Integra Type-R DC2", year: 1997, tags: ["fwd", "manual", "liftback", "coupe", "japanese", "us_market", "redline_8k", "lightweight", "big_wing", "2+2"] },
+    { make: "Acura", model: "RSX Type-S DC5", year: 2006, tags: ["fwd", "manual", "liftback", "coupe", "japanese", "us_market", "redline_8k", "big_wing", "2+2"] },
     { make: "Toyota", model: "Supra MK4", year: 1998, tags: ["rwd", "manual", "turbo", "twin_turbo", "inline6", "coupe", "japanese", "fast_furious", "round_taillights", "big_wing", "us_market", "2+2"] },
     { make: "Toyota", model: "Supra MK5", year: 2019, tags: ["rwd", "liftback", "manual", "turbo", "inline6", "coupe", "japanese", "bmw_toyota", "two_seater", "us_market"] },
     { make: "Toyota", model: "GR86 ZN8", year: 2022, tags: ["rwd", "manual", "coupe", "japanese", "boxer", "us_market", "2+2", "lightweight"] },
     { make: "Toyota", model: "MR2 SW20", year: 1991, tags: ["rwd", "manual", "turbo", "coupe", "japanese", "mid_engine", "popups", "two_seater", "wedge", "us_market"] },
-    { make: "Toyota", model: "MR2 SW20", year: 1991, tags: ["rwd", "manual", "coupe", "japanese", "mid_engine", "popups", "two_seater", "wedge", "us_market"] },
+    { make: "Toyota", model: "MR2 NA SW20", year: 1991, tags: ["rwd", "manual", "coupe", "japanese", "mid_engine", "popups", "two_seater", "wedge", "us_market"] },
     { make: "Nissan", model: "Skyline GT-R R34", year: 1999, tags: ["awd", "2+2", "manual", "turbo", "twin_turbo", "inline6", "coupe", "japanese", "fast_furious", "round_taillights", "big_wing", "digital_gauge_display"] },
     { make: "Nissan", model: "Skyline R33", year: 1995, tags: ["awd", "2+2", "manual", "turbo", "twin_turbo", "inline6", "coupe", "japanese", "fast_furious", "round_taillights", "big_wing"] },
     { make: "Nissan", model: "Skyline GT-R R32", year: 1989, tags: ["awd", "2+2", "manual", "turbo", "twin_turbo", "inline6", "coupe", "japanese", "initial_d", "godzilla", "big_wing", "round_taillights"] },
@@ -180,7 +193,7 @@ async function main() {
     { make: "Porsche", model: "911 Carrera 992", year: 2024, tags: ["rwd", "manual", "turbo", "twin_turbo", "coupe", "european", "boxer", "german", "rear_engine", "us_market", "2+2"] },
     { make: "Porsche", model: "911 GT3 997", year: 2007, tags: ["rwd", "manual", "coupe", "european", "boxer", "german", "rear_engine", "redline_8k", "big_wing", "six_figure", "over_400hp", "us_market", "2+2"] },
     { make: "Porsche", model: "944 Turbo", year: 1986, tags: ["rwd", "manual", "turbo", "coupe", "european", "popups", "german", "us_market", "2+2"] },
-    { make: "Porsche", model: "Carrera GT 980", year: 2003, tags: ["mid_engine", "big_cyl", "over_400hp","redline_8k", "big_wing", "six_figure", "german", "manual", "european"] },
+    { make: "Porsche", model: "Carrera GT 980", year: 2003, tags: ["rwd","mid_engine", "big_cyl", "rwd", "over_400hp","redline_8k", "big_wing", "six_figure", "german", "manual", "european"] },
     { make: "Porsche", model: "944", year: 1986, tags: ["rwd", "manual", "coupe", "european", "popups", "german", "us_market", "2+2"] }, // Base added
     { make: "Porsche", model: "Cayman GT4 981", year: 2016, tags: ["rwd", "manual", "coupe", "european", "boxer", "mid_engine", "german", "two_seater", "big_wing", "us_market"] },
     { make: "Porsche", model: "Cayman 981", year: 2016, tags: ["rwd", "manual", "coupe", "european", "boxer", "mid_engine", "german", "two_seater", "us_market"] }, // Base added
@@ -194,7 +207,7 @@ async function main() {
     { make: "BMW", model: "M3 E46 Coupe", year: 2000, tags: ["rwd", "manual", "inline6", "coupe", "european", "german", "redline_8k", "us_market"] },
     { make: "BMW", model: "3 Series E46", year: 2000, tags: ["rwd", "manual", "inline6", "coupe", "european", "german", "us_market"] }, // Base added
     { make: "BMW", model: "M3 E90", year: 2010, tags: ["rwd", "manual", "v8", "coupe", "european", "german", "redline_8k", "over_400hp", "us_market"] },
-    { make: "BMW", model: "E92", year: 2010, tags: ["rwd", "manual", "inline6", "coupe", "european", "german", "us_market"] }, // Base added
+    { make: "BMW", model: "335i E92", year: 2010, tags: ["rwd", "manual", "inline6", "coupe", "european", "german", "us_market"] }, // Base added
     { make: "Alfa Romeo", model: "Giulia Quadrifoglio", year: 2017, tags: ["rwd", "turbo", "twin_turbo", "v6", "sedan", "european", "italian", "over_400hp", "us_market"] },
     { make: "Mini", model: "Cooper S R53", year: 2005, tags: ["fwd", "manual", "turbo", "hatchback", "european", "british", "us_market"] }, // Supercharged — "turbo" question explicitly covers turbo OR supercharged
     { make: "Mini", model: "Cooper R50", year: 2005, tags: ["fwd", "manual", "hatchback", "european", "british", "us_market"] }, // Base naturally aspirated added
@@ -204,14 +217,15 @@ async function main() {
     { make: "Audi", model: "Quattro Ur-Quattro", year: 1984, tags: ["awd", "manual", "turbo", "coupe", "european", "german", "boxy", "wrc"] },
     { make: "Mercedes-Benz", model: "SLS AMG", year: 2011, tags: ["rwd", "v8", "coupe", "european", "german", "unusual_doors", "two_seater", "six_figure", "over_400hp", "us_market"] },
     { make: "Mercedes-Benz", model: "G-Class Second Generation", year: 2019, tags: ["awd", "v8", "turbo", "twin_turbo", "suv", "european", "german", "boxy", "six_figure", "over_400hp", "us_market"] },
-    { make: "Ferrari", model: "F40", year: 1990, tags: ["rwd", "manual", "turbo", "twin_turbo", "v8", "coupe", "european", "popups", "italian", "mid_engine", "two_seater", "wedge", "round_taillights", "big_wing", "six_figure", "limited_run", "lightweight", "over_400hp"] },
-    { make: "Ferrari", model: "Testarossa", year: 1986, tags: ["rwd", "manual", "big_cyl", "boxer", "coupe", "european", "popups", "italian", "mid_engine", "two_seater", "wedge", "limited_run", "us_market"] },
+    { make: "Ferrari", model: "F40", year: 1990, tags: ["rwd", "manual", "turbo", "twin_turbo", "v8", "coupe", "european", "popups", "italian", "mid_engine", "two_seater", "wedge", "round_taillights", "big_wing", "six_figure", "limited_run", "lightweight", "over_400hp", "us_market"] },
+    { make: "Ferrari", model: "Testarossa", year: 1986, tags: ["rwd", "manual", "big_cyl", "coupe", "european", "popups", "italian", "mid_engine", "two_seater", "wedge", "limited_run", "us_market"] },
     { make: "Ferrari", model: "250 GT California Spyder", year: 1957, tags: ["rwd", "manual", "big_cyl", "convertible", "european", "italian", "two_seater", "limited_run", "us_market"] },
     { make: "Lamborghini", model: "Aventador LP 740-4", year: 2020, tags: ["awd", "big_cyl", "coupe", "european", "italian", "mid_engine", "two_seater", "unusual_doors", "wedge", "redline_8k", "six_figure", "over_400hp", "us_market"] },
     { make: "Lamborghini", model: "Countach LP5000 QV", year: 1985, tags: ["rwd", "manual", "big_cyl", "coupe", "european", "popups", "italian", "mid_engine", "two_seater", "unusual_doors", "wedge", "six_figure", "limited_run", "over_400hp", "us_market", "dicaprio"] },
     { make: "Aston Martin", model: "DB5", year: 1964, tags: ["rwd", "manual", "coupe", "european", "british", "james_bond", "limited_run", "us_market", "2+2"] },
     { make: "McLaren", model: "F1", year: 1993, tags: ["rwd", "manual", "big_cyl", "coupe", "european", "british", "mid_engine", "unusual_doors", "wedge", "six_figure", "limited_run", "over_400hp"] },
-    { make: "McLaren", model: "P1", year: 2014, tags: ["rwd", "v8", "hybrid", "turbo", "coupe", "european", "british", "mid_engine", "unusual_doors", "six_figure", "limited_run", "over_400hp"] },    { make: "Lotus", model: "Elise S1", year: 1996, tags: ["rwd", "manual", "convertible", "european", "british", "mid_engine", "two_seater", "lightweight"] },
+    { make: "McLaren", model: "P1", year: 2014, tags: ["rwd", "v8", "hybrid", "turbo", "coupe", "european", "british", "mid_engine", "unusual_doors", "six_figure", "limited_run", "over_400hp", "us_market"] },
+    { make: "Lotus", model: "Elise S1", year: 1996, tags: ["rwd", "manual", "convertible", "european", "british", "mid_engine", "two_seater", "lightweight"] },
     { make: "Land Rover", model: "Defender 110", year: 1990, tags: ["awd", "manual", "suv", "european", "british", "boxy"] },
     { make: "Volvo", model: "240", year: 1990, tags: ["rwd", "manual", "sedan", "european", "boxy", "us_market"] },
 
@@ -219,22 +233,122 @@ async function main() {
     { make: "Hyundai", model: "Elantra N", year: 2024, tags: ["fwd", "manual", "turbo", "sedan", "us_market"] },
   ];
 
-  // identify car eras for questions
-  const eraTags = (year: number) => [
-    ...(year < 1980 ? ["pre_1980"] : []),
-    ...(year < 2000 ? ["pre_2000"] : []),
-    ...(year < 2010 ? ["pre_2010"] : []),
-    ...(year >= 2015 ? ["post_2015"] : []),
-    ...(year >= 2020 ? ["post_2020"] : []),
-  ];
+  // Era questions are the one category where we can ALWAYS give a definitive
+  // true/false answer for every car, since it's fully determined by year —
+  // there's no "unknown" for era. Unlike the old eraTags() (which only ever
+  // returned the tags that were true), this returns an explicit answer for
+  // every era key, so e.g. a 2005 car still gets a confirmed `false` for
+  // "pre_1980" instead of that question silently becoming "unknown".
+  const eraAnswers = (year: number): Record<string, boolean> => ({
+    pre_1980: year < 1980,
+    pre_2000: year < 2000,
+    pre_2010: year < 2010,
+    post_2015: year >= 2015,
+    post_2020: year >= 2020,
+  });
 
   const validKeys = new Set(questionData.map(q => q.key));
   for (const car of carRoster) {
-    for (const tag of [...car.tags, ...eraTags(car.year)]) {
+    for (const tag of [...car.tags, ...(car.falseTags ?? [])]) {
       if (!validKeys.has(tag)) {
         throw new Error(`Unknown tag "${tag}" on ${car.make} ${car.model}`);
       }
     }
+    const overlap = (car.falseTags ?? []).filter((t) => car.tags.includes(t));
+    if (overlap.length > 0) {
+      throw new Error(
+        `${car.make} ${car.model} lists ${overlap.join(", ")} as both true and false`,
+      );
+    }
+  }
+
+  // Groups of keys that are genuinely mutually exclusive — a car can have at
+  // most one true member of a group, so the moment one member is confirmed
+  // true, every OTHER member can be auto-derived as false without listing
+  // them all by hand in falseTags. This must stay a short, deliberately
+  // curated list — it is NOT the same thing as the `category` enum on
+  // attributes, which is just a thematic UI grouping. Most `body_style` and
+  // `design` tags are NOT one-hot (e.g. a car can be both `liftback` and
+  // `coupe` at once — see Supra MK5 / 180SX below), so don't be tempted to
+  // expand this by category name; only add a group here if every member is
+  // truly one-hot with every other member.
+  //
+  // `impliesTrue` is for hierarchical groups: confirming any member also
+  // confirms a parent key true (e.g. `german` implies `european`), which
+  // then feeds into that parent's own exclusivity group.
+  const exclusivityGroups: { keys: string[]; impliesTrue?: string }[] = [
+    { keys: ["fwd", "rwd", "awd"] },
+    { keys: ["v8", "v6", "inline6", "boxer", "rotary"] }, // big_cyl and ev intentionally excluded — see notes below
+    { keys: ["japanese", "american", "european"] },
+    { keys: ["german", "italian", "british"], impliesTrue: "european" },
+    { keys: ["truck", "suv", "sedan"] },
+  ];
+  // Why `ev` isn't in the engine-layout group: a car can be a hybrid with a
+  // real ICE layout (e.g. NSX NC1 = hybrid + v6) without being "fully
+  // electric." `ev` and the ICE layouts are logically exclusive in principle,
+  // but keeping `ev` out of the auto-derivation group means it only ever
+  // gets set from an explicit tag/falseTag, never silently inferred.
+  //
+  // Why `big_cyl` isn't in the group either: it's a cylinder-COUNT threshold
+  // (>8), while v8/v6/inline6/boxer/rotary mix count and layout together.
+  // Count and layout aren't actually the same axis — a flat-12 is both
+  // `boxer` (layout) and `big_cyl` (count) at once. The Ferrari Testarossa
+  // is exactly this case in the roster below; including big_cyl here would
+  // make the seed throw a false contradiction on it.
+
+  for (const group of exclusivityGroups) {
+    for (const key of [...group.keys, ...(group.impliesTrue ? [group.impliesTrue] : [])]) {
+      if (!validKeys.has(key)) {
+        throw new Error(`Exclusivity group references unknown tag "${key}"`);
+      }
+    }
+  }
+
+  // Resolves a car's raw tags/falseTags against the exclusivity groups:
+  // applies `impliesTrue` cascades, then derives false for every other
+  // member of a group once one member is confirmed true.
+  function resolveExclusivity(
+    carLabel: string,
+    rawTrue: Set<string>,
+    rawFalse: Set<string>,
+  ): { trueTags: Set<string>; falseTags: Set<string> } {
+    const trueTags = new Set(rawTrue);
+
+    // Cascade implications to a fixed point (a couple passes is plenty for
+    // how shallow this hierarchy is, but looping handles future nesting).
+    for (let pass = 0; pass < 3; pass++) {
+      let changed = false;
+      for (const group of exclusivityGroups) {
+        if (group.impliesTrue && group.keys.some((k) => trueTags.has(k)) && !trueTags.has(group.impliesTrue)) {
+          trueTags.add(group.impliesTrue);
+          changed = true;
+        }
+      }
+      if (!changed) break;
+    }
+
+    const falseTags = new Set(rawFalse);
+    for (const group of exclusivityGroups) {
+      const trueMembers = group.keys.filter((k) => trueTags.has(k));
+      if (trueMembers.length > 1) {
+        throw new Error(
+          `${carLabel} has contradictory tags within one group: ${trueMembers.join(", ")}`,
+        );
+      }
+      if (trueMembers.length === 1) {
+        for (const key of group.keys) {
+          if (key !== trueMembers[0] && !trueTags.has(key)) falseTags.add(key);
+        }
+      }
+    }
+
+    for (const key of falseTags) {
+      if (trueTags.has(key)) {
+        throw new Error(`${carLabel}: "${key}" resolved to both true and false`);
+      }
+    }
+
+    return { trueTags, falseTags };
   }
 
   // add tags to db
@@ -247,15 +361,33 @@ async function main() {
       baseWeight: 1,
     }).returning();
 
-    // Map through all questions
-    const allTags = [...carData.tags, ...eraTags(carData.year)];
-    const mappings = questionData.map((q) => ({
-      carId: insertedCar.id,
-      attributeId: qMap.get(q.key),
-      isMatch: allTags.includes(q.key),
-    }));
+    const { trueTags, falseTags } = resolveExclusivity(
+      `${carData.make} ${carData.model}`,
+      new Set(carData.tags),
+      new Set(carData.falseTags ?? []),
+    );
+    const era = eraAnswers(carData.year);
 
-    await db.insert(carAttributes).values(mappings);
+    // Only insert a row when we actually have a confirmed answer for this
+    // car+question. If a question is neither in `tags`, `falseTags`, nor an
+    // era key, we deliberately insert NOTHING — an absent row is read by the
+    // guessing engine (route.ts) as "unknown," and stays neutral instead of
+    // silently counting as a confirmed "no."
+    const mappings: { carId: string; attributeId: any; isMatch: boolean }[] = [];
+    for (const q of questionData) {
+      if (q.key in era) {
+        mappings.push({ carId: insertedCar.id, attributeId: qMap.get(q.key), isMatch: era[q.key] });
+      } else if (trueTags.has(q.key)) {
+        mappings.push({ carId: insertedCar.id, attributeId: qMap.get(q.key), isMatch: true });
+      } else if (falseTags.has(q.key)) {
+        mappings.push({ carId: insertedCar.id, attributeId: qMap.get(q.key), isMatch: false });
+      }
+      // else: left unasserted on purpose — unknown, not false.
+    }
+
+    if (mappings.length > 0) {
+      await db.insert(carAttributes).values(mappings);
+    }
   }
 
   //update global stats

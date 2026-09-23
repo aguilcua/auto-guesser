@@ -20,9 +20,8 @@ export async function POST(request: Request) {
       .where(eq(attributes.isApproved, true))
       .orderBy(asc(attributes.id));
 
-    //naive bayes math
-    const MATCH_MULTIPLIER = 2.0;
-    const PENALTY_MULTIPLIER = 0.05;
+    const MATCH_MULTIPLIER = 1.4;
+    const PENALTY_MULTIPLIER = 0.15; 
 
     let scoredCars = allCars.map((car) => {
       let probability = car.baseWeight; //start with baseline
@@ -31,14 +30,16 @@ export async function POST(request: Request) {
         const dbMapping = allMappings.find(
           (m) => m.carId === car.id && m.attributeId === attributeId,
         );
+        
         if (userAnswer === null) continue;
+        
         if (dbMapping) {
           const isCorrectMatch = dbMapping.isMatch === userAnswer;
           probability *= isCorrectMatch ? MATCH_MULTIPLIER : PENALTY_MULTIPLIER;
-        } else {
-          continue; // if a car does not have a mapping for the new question just continue.
-        }
+        } 
+        // Unknowns implicitly multiply by 1.0 (no change)
       }
+      
       return { ...car, probability: probability };
     });
     const totalScore = scoredCars.reduce(
@@ -52,37 +53,44 @@ export async function POST(request: Request) {
     //sort by highest prob
     scoredCars.sort((a, b) => b.probability - a.probability);
 
-    // win condition
     let finalGuess = null;
-
-    // Check if the #1 car has a higher chance than car #2
-    if (scoredCars.length >= 2) {
-      const topCar = scoredCars[0];
-      const runnerUp = scoredCars[1];
-
-      // If the top car's probability is more than double the runner up,
-      // the engine is confident enough to make a final guess.
-      if (topCar.probability > runnerUp.probability * 2) {
-        finalGuess = topCar;
-      }
-    }
     //determine next question
     const answeredAttributesIds = Object.keys(safeAnswers);
     const remainingAttributes = allAttributes.filter(
       (attr) => !answeredAttributesIds.includes(attr.id),
     );
 
-    const topContenders = scoredCars.slice(0, 20);
+    //contender pool
+    let cumulativeProb = 0;
+    const topContenders = [];
+    
+    for (const car of scoredCars) {
+      topContenders.push(car);
+      cumulativeProb += car.probability;
+      if (cumulativeProb >= 0.95) break;
+    }
+
     const totalContenders = topContenders.length;
 
+    // Shannon Entropy
+    const currentEntropy = scoredCars.reduce((sum, car) => {
+      if (car.probability <= 0) return sum;
+      return sum - (car.probability * Math.log2(car.probability));
+    }, 0);
+
+    const ENTROPY_THRESHOLD = 0.60; 
+
+    //win condition
+    if (scoredCars.length > 0 && currentEntropy < ENTROPY_THRESHOLD) {
+      finalGuess = scoredCars[0];
+    }
+
+    // next question determination
     let bestQuestion = null;
     let bestScore = -1;
 
     if (!finalGuess && totalContenders > 0 && remainingAttributes.length > 0) {
-      const totalProb = topContenders.reduce(
-        (sum, car) => sum + car.probability,
-        0,
-      );
+      const totalProb = topContenders.reduce((sum, car) => sum + car.probability, 0);
 
       for (const attr of remainingAttributes) {
         let yesProb = 0;
@@ -111,12 +119,10 @@ export async function POST(request: Request) {
       }
     }
 
-    // if no remaining questions or tiebreaker moment
-    if (
-      !finalGuess &&
-      !bestQuestion &&
-      scoredCars.length > 0
-    ) {
+    // Win Condition B: Knowledge Exhaustion 
+    // If the best available question has a terrible split score (e.g., < 0.1),
+    // the engine knows asking it won't help differentiate the remaining cars.
+    if (!finalGuess && (!bestQuestion || bestScore < 0.1) && scoredCars.length > 0) {
       finalGuess = scoredCars[0];
     }
     // increment ask count for questions
