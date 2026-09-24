@@ -88,7 +88,6 @@ export async function POST(request: Request) {
     const totalContenders = topContenders.length;
 
     // next question determination
-    // next question determination
     let bestQuestion = null;
     let bestScore = -1;
 
@@ -97,24 +96,18 @@ export async function POST(request: Request) {
 
       for (const attr of remainingAttributes) {
         let yesProb = 0;
-        let noProb = 0; // Track noProb to see both explicit sides of the matrix
 
         for (const car of topContenders) {
           const mapping = allMappings.find(
             (m) => m.carId === car.id && m.attributeId === attr.id,
           );
 
-          if (mapping) {
-            if (mapping.isMatch) yesProb += car.probability;
-            else noProb += car.probability;
+          if (mapping && mapping.isMatch) {
+            yesProb += car.probability;
           }
         }
-
-        // Evaluate the split against the ENTIRE pool, treating Unknowns as neutral weight.
-        // A perfect question splits the total pool 50/50. 
-        const effectiveRatio = Math.max(yesProb, noProb) / totalProb;
+        const effectiveRatio = totalProb > 0 ? yesProb / totalProb : 0;
         
-        // Example: If only the R32 has Godzilla (20.1% of pool), score is ~0.20
         const splitScore = 0.5 - Math.abs(effectiveRatio - 0.5);
 
         if (splitScore > bestScore) {
